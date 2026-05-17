@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Leave Action</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Segoe UI',Arial,sans-serif;background:linear-gradient(135deg,#1a73e8,#0d47a1);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+    .card{background:#fff;border-radius:16px;padding:40px;max-width:480px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.2)}
+    .icon{font-size:64px;margin-bottom:16px}
+    h2{font-size:22px;color:#1a1a1a;margin-bottom:12px}
+    p{color:#555;font-size:15px;line-height:1.6;margin-bottom:8px}
+    .detail{background:#f5f5f5;border-radius:8px;padding:16px;margin:20px 0;text-align:left}
+    .detail p{font-size:14px;margin-bottom:6px}
+    .detail p strong{color:#333}
+    .btn{display:inline-block;margin-top:20px;padding:12px 28px;background:#1a73e8;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px}
+    .btn:hover{background:#1557b0}
+    .error{color:#ea4335}
+  </style>
+</head>
+<body>
+<div class="card">
+  {% if success %}
+    <div class="icon">✅</div>
+    <h2>Action Recorded</h2>
+    <p>{{ message | safe }}</p>
+    {% if staff %}
+    <div class="detail">
+      <p><strong>Staff:</strong> {{ staff }}</p>
+      <p><strong>Leave Type:</strong> {{ leave_type }}</p>
+      <p><strong>Period:</strong> {{ period }}</p>
+      <p><strong>Duration:</strong> {{ days }} working day(s)</p>
+    </div>
+    {% endif %}
+  {% else %}
+    <div class="icon">❌</div>
+    <h2 class="error">Invalid Link</h2>
+    <p>{{ message }}</p>
+  {% endif %}
+  <a href="/dashboard" class="btn">📊 Go to Dashboard</a>
+</div>
+</body>
+</html>
