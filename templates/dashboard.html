@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Leave Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;color:#333;min-height:100vh}
+    header{background:#1a73e8;color:#fff;padding:16px 28px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+    header h1{font-size:20px;font-weight:700}
+    header .links a{color:rgba(255,255,255,.85);text-decoration:none;margin-left:20px;font-size:14px}
+    header .links a:hover{color:#fff;text-decoration:underline}
+    .container{max-width:1300px;margin:0 auto;padding:24px}
+    .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+    .kpi{background:#fff;border-radius:12px;padding:20px 24px;box-shadow:0 2px 8px rgba(0,0,0,.07);display:flex;align-items:center;gap:16px}
+    .kpi .kpi-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px}
+    .kpi .kpi-val{font-size:28px;font-weight:700;line-height:1}
+    .kpi .kpi-lbl{font-size:12px;color:#888;margin-top:4px}
+    .kpi.pending .kpi-icon{background:#fff8e1}
+    .kpi.approved .kpi-icon{background:#e6f4ea}
+    .kpi.rejected .kpi-icon{background:#fce8e6}
+    .kpi.total    .kpi-icon{background:#e8f0fe}
+    .charts-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+    .chart-card{background:#fff;border-radius:12px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.07)}
+    .chart-card h3{font-size:15px;font-weight:600;margin-bottom:16px;color:#333}
+    .main-table-card{background:#fff;border-radius:12px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.07);margin-bottom:24px}
+    .table-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px}
+    .table-header h3{font-size:15px;font-weight:600}
+    .filters{display:flex;gap:10px;flex-wrap:wrap}
+    select.filter{padding:7px 12px;border:1.5px solid #e0e0e0;border-radius:7px;font-size:13px;background:#fafafa}
+    input.filter{padding:7px 12px;border:1.5px solid #e0e0e0;border-radius:7px;font-size:13px;background:#fafafa;width:180px}
+    table{width:100%;border-collapse:collapse;font-size:13px}
+    th{background:#f5f7fa;padding:10px 12px;text-align:left;font-weight:600;color:#555;border-bottom:2px solid #e8ecf0}
+    td{padding:10px 12px;border-bottom:1px solid #f0f0f0;vertical-align:middle}
+    tr:hover td{background:#f9fbff}
+    .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;text-transform:uppercase}
+    .badge-pending {background:#fff8e1;color:#f59300}
+    .badge-approved{background:#e6f4ea;color:#34a853}
+    .badge-rejected{background:#fce8e6;color:#ea4335}
+    .badge-al{background:#e8f0fe;color:#1a73e8}
+    .badge-ml{background:#fce8e6;color:#ea4335}
+    .badge-npl{background:#fff8e1;color:#f59300}
+    .badge-cl{background:#f3e8fd;color:#a142f4}
+    .action-btn{padding:5px 12px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;border:none}
+    .btn-approve{background:#34a853;color:#fff}
+    .btn-reject{background:#ea4335;color:#fff}
+    .btn-approve:hover{background:#2d9248}
+    .btn-reject:hover{background:#d33}
+    .staff-table-card{background:#fff;border-radius:12px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.07);margin-bottom:24px}
+    .progress-bar{height:6px;background:#e0e0e0;border-radius:4px;width:100%;min-width:60px}
+    .progress-bar .fill{height:100%;border-radius:4px;background:#1a73e8}
+    .tab-row{display:flex;gap:0;border-bottom:2px solid #e8ecf0;margin-bottom:20px}
+    .tab{padding:10px 20px;cursor:pointer;font-size:14px;font-weight:500;color:#888;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s}
+    .tab.active{color:#1a73e8;border-bottom-color:#1a73e8;font-weight:600}
+    .tab:hover{color:#1a73e8}
+    .tab-content{display:none}
+    .tab-content.active{display:block}
+    .refresh-btn{padding:8px 16px;background:#1a73e8;color:#fff;border:none;border-radius:7px;font-size:13px;cursor:pointer;font-weight:600}
+    .refresh-btn:hover{background:#1557b0}
+    .empty{text-align:center;padding:40px;color:#aaa;font-size:14px}
+    @media(max-width:900px){
+      .kpi-row{grid-template-columns:1fr 1fr}
+      .charts-row{grid-template-columns:1fr}
+    }
+    @media(max-width:600px){
+      .kpi-row{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>📊 Leave Management Dashboard</h1>
+  <div class="links">
+    <a href="/">📋 Staff Form</a>
+    <a href="/settings">⚙️ Settings</a>
+    <button class="refresh-btn" onclick="loadData()">🔄 Refresh</button>
+  </div>
+</header>
+
+<div class="container">
+  <!-- KPI Cards -->
+  <div class="kpi-row">
+    <div class="kpi total">
+      <div class="kpi-icon">📁</div>
+      <div><div class="kpi-val" id="kpi-total">—</div><div class="kpi-lbl">Total Applications</div></div>
+    </div>
+    <div class="kpi pending">
+      <div class="kpi-icon">⏳</div>
+      <div><div class="kpi-val" id="kpi-pending">—</div><div class="kpi-lbl">Pending Approval</div></div>
+    </div>
+    <div class="kpi approved">
+      <div class="kpi-icon">✅</div>
+      <div><div class="kpi-val" id="kpi-approved">—</div><div class="kpi-lbl">Approved</div></div>
+    </div>
+    <div class="kpi rejected">
+      <div class="kpi-icon">❌</div>
+      <div><div class="kpi-val" id="kpi-rejected">—</div><div class="kpi-lbl">Rejected</div></div>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="charts-row">
+    <div class="chart-card">
+      <h3>Leave by Type</h3>
+      <canvas id="typeChart" height="180"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>Monthly Approvals (last 6 months)</h3>
+      <canvas id="trendChart" height="180"></canvas>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="main-table-card">
+    <div class="tab-row">
+      <div class="tab active" onclick="switchTab('applications',this)">📋 Applications</div>
+      <div class="tab" onclick="switchTab('staff',this)">👥 Staff Balances</div>
+    </div>
+
+    <!-- Applications Tab -->
+    <div id="tab-applications" class="tab-content active">
+      <div class="table-header">
+        <h3>Leave Applications</h3>
+        <div class="filters">
+          <select class="filter" id="filterStatus" onchange="renderTable()">
+            <option value="">All Status</option>
+            <option>Pending</option>
+            <option>Approved</option>
+            <option>Rejected</option>
+          </select>
+          <select class="filter" id="filterType" onchange="renderTable()">
+            <option value="">All Types</option>
+            <option>Annual Leave</option>
+            <option>Medical Leave</option>
+            <option>No Pay Leave</option>
+            <option>Compassionate Leave</option>
+          </select>
+          <input class="filter" id="filterSearch" placeholder="Search name..." oninput="renderTable()">
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th><th>Staff</th><th>Dept</th><th>Type</th>
+              <th>From</th><th>To</th><th>Days</th>
+              <th>Status</th><th>Applied</th><th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="appTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Staff Balances Tab -->
+    <div id="tab-staff" class="tab-content">
+      <div class="table-header">
+        <h3>Staff Leave Balances</h3>
+      </div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th><th>Department</th>
+              <th>Annual (AL)</th><th>Medical (ML)</th>
+              <th>No Pay (NPL)</th><th>Compassionate (CL)</th>
+            </tr>
+          </thead>
+          <tbody id="staffTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let allData = {};
+
+function switchTab(name, el) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-'+name).classList.add('active');
+}
+
+async function loadData() {
+  const res  = await fetch('/api/dashboard');
+  allData    = await res.json();
+
+  // KPIs
+  const c = allData.counts || {};
+  const total = (c.Pending||0)+(c.Approved||0)+(c.Rejected||0);
+  document.getElementById('kpi-total').textContent    = total;
+  document.getElementById('kpi-pending').textContent  = c.Pending  || 0;
+  document.getElementById('kpi-approved').textContent = c.Approved || 0;
+  document.getElementById('kpi-rejected').textContent = c.Rejected || 0;
+
+  renderTable();
+  renderStaff();
+  renderCharts();
+}
+
+function leaveTypeBadge(t) {
+  const map = {
+    'Annual Leave':'al','Medical Leave':'ml',
+    'No Pay Leave':'npl','Compassionate Leave':'cl'
+  };
+  return `<span class="badge badge-${map[t]||'al'}">${t}</span>`;
+}
+
+function statusBadge(s) {
+  const cls = {'Pending':'pending','Approved':'approved','Rejected':'rejected'}[s]||'pending';
+  return `<span class="badge badge-${cls}">${s}</span>`;
+}
+
+function renderTable() {
+  const apps   = allData.apps || [];
+  const fStat  = document.getElementById('filterStatus').value;
+  const fType  = document.getElementById('filterType').value;
+  const fSearch= document.getElementById('filterSearch').value.toLowerCase();
+
+  const filtered = apps.filter(a =>
+    (!fStat   || a.status === fStat) &&
+    (!fType   || a.leave_type === fType) &&
+    (!fSearch || a.staff_name.toLowerCase().includes(fSearch))
+  );
+
+  const tbody = document.getElementById('appTableBody');
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="10" class="empty">No applications found</td></tr>';
+    return;
+  }
+  tbody.innerHTML = filtered.map((a,i) => `
+    <tr>
+      <td>${i+1}</td>
+      <td><strong>${a.staff_name}</strong></td>
+      <td>${a.department}</td>
+      <td>${leaveTypeBadge(a.leave_type)}</td>
+      <td>${a.start_date}</td>
+      <td>${a.end_date}</td>
+      <td><strong>${a.days}</strong></td>
+      <td>${statusBadge(a.status)}</td>
+      <td style="font-size:12px;color:#888">${a.applied_at.slice(0,10)}</td>
+      <td>
+        ${a.status==='Pending'
+          ? `<button class="action-btn btn-approve" onclick="action(${a.id},'approve')">✅</button>
+             <button class="action-btn btn-reject"  onclick="action(${a.id},'reject')"  style="margin-left:4px">❌</button>`
+          : `<span style="font-size:12px;color:#aaa">${a.actioned_at?a.actioned_at.slice(0,10):'—'}</span>`
+        }
+      </td>
+    </tr>
+  `).join('');
+}
+
+function renderStaff() {
+  const staff = allData.staff || [];
+  const tbody = document.getElementById('staffTableBody');
+  tbody.innerHTML = staff.map(s => `
+    <tr>
+      <td><strong>${s.name}</strong><br><span style="font-size:11px;color:#aaa">${s.email}</span></td>
+      <td>${s.department}</td>
+      <td>${balanceCell(s.annual_leave_balance, 14)}</td>
+      <td>${balanceCell(s.medical_leave_balance, 14)}</td>
+      <td>${balanceCell(s.no_pay_leave_balance, 365)}</td>
+      <td>${balanceCell(s.compassionate_leave_balance, 3)}</td>
+    </tr>
+  `).join('');
+}
+
+function balanceCell(val, max) {
+  const pct = Math.min(100, Math.round((val/max)*100));
+  const color = pct > 50 ? '#34a853' : pct > 25 ? '#fbbc04' : '#ea4335';
+  return `
+    <div style="display:flex;align-items:center;gap:8px">
+      <span style="font-weight:600;min-width:28px">${val}</span>
+      <div class="progress-bar"><div class="fill" style="width:${pct}%;background:${color}"></div></div>
+      <span style="font-size:11px;color:#aaa">/${max}</span>
+    </div>`;
+}
+
+let typeChart, trendChart;
+
+function renderCharts() {
+  // By-type doughnut
+  const typeData = {};
+  (allData.by_type||[]).forEach(r => {
+    if (!typeData[r.leave_type]) typeData[r.leave_type] = 0;
+    typeData[r.leave_type] += r.cnt;
+  });
+  const typeLabels = Object.keys(typeData);
+  const typeVals   = Object.values(typeData);
+
+  if (typeChart) typeChart.destroy();
+  typeChart = new Chart(document.getElementById('typeChart'), {
+    type: 'doughnut',
+    data: {
+      labels: typeLabels,
+      datasets: [{
+        data: typeVals,
+        backgroundColor: ['#1a73e8','#ea4335','#fbbc04','#a142f4'],
+        borderWidth: 2,
+      }]
+    },
+    options: {
+      plugins: { legend: { position: 'bottom', labels: { font: { size: 12 } } } },
+      cutout: '60%'
+    }
+  });
+
+  // Monthly trend line
+  const months = [...new Set((allData.trend||[]).map(r=>r.month))].sort();
+  const ltypes = ['Annual Leave','Medical Leave','No Pay Leave','Compassionate Leave'];
+  const colors = ['#1a73e8','#ea4335','#fbbc04','#a142f4'];
+
+  const datasets = ltypes.map((lt,i) => ({
+    label: lt,
+    data: months.map(m => {
+      const row = (allData.trend||[]).find(r=>r.month===m && r.leave_type===lt);
+      return row ? row.cnt : 0;
+    }),
+    borderColor: colors[i],
+    backgroundColor: colors[i]+'33',
+    tension: 0.3,
+    fill: true,
+    pointRadius: 4,
+  }));
+
+  if (trendChart) trendChart.destroy();
+  trendChart = new Chart(document.getElementById('trendChart'), {
+    type: 'line',
+    data: { labels: months.length ? months : ['No data'], datasets },
+    options: {
+      plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } },
+      scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+    }
+  });
+}
+
+async function action(id, decision) {
+  if (!confirm(`${decision==='approve'?'Approve':'Reject'} this leave application?`)) return;
+
+  // We need to find the token for this id
+  const app = (allData.apps||[]).find(a=>a.id===id);
+  if (!app) return;
+
+  // Use dashboard direct action endpoint (by id)
+  const res = await fetch(`/api/action-by-id/${id}/${decision}`, {method:'POST'});
+  const data = await res.json();
+  if (data.ok) {
+    loadData();
+  } else {
+    alert('Error: ' + data.error);
+  }
+}
+
+loadData();
+setInterval(loadData, 30000); // auto-refresh every 30s
+</script>
+</body>
+</html>
