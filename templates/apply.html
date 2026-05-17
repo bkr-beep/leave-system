@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Leave Application</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Segoe UI',Arial,sans-serif;background:linear-gradient(135deg,#1a73e8 0%,#0d47a1 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+    .card{background:#fff;border-radius:16px;padding:36px;max-width:560px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.2)}
+    .logo{display:flex;align-items:center;gap:12px;margin-bottom:28px}
+    .logo-icon{width:44px;height:44px;background:#1a73e8;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px}
+    h1{font-size:22px;color:#1a1a1a;font-weight:700}
+    .subtitle{font-size:13px;color:#888;margin-top:2px}
+    .form-group{margin-bottom:18px}
+    label{display:block;font-size:13px;font-weight:600;color:#444;margin-bottom:6px}
+    input,select,textarea{width:100%;padding:10px 14px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:14px;color:#333;transition:border .2s;background:#fafafa}
+    input:focus,select:focus,textarea:focus{outline:none;border-color:#1a73e8;background:#fff}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .btn{width:100%;padding:14px;background:#1a73e8;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;transition:background .2s;margin-top:8px}
+    .btn:hover{background:#1557b0}
+    .btn:disabled{background:#aaa;cursor:not-allowed}
+    .notice{background:#e8f0fe;border-left:4px solid #1a73e8;padding:12px 16px;border-radius:6px;font-size:13px;color:#1a73e8;margin-bottom:20px}
+    .success{background:#e6f4ea;border-left:4px solid #34a853;padding:20px;border-radius:8px;text-align:center;display:none}
+    .success h2{color:#34a853;margin-bottom:8px}
+    .success p{color:#555;font-size:14px}
+    .days-badge{display:inline-block;background:#e8f0fe;color:#1a73e8;font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px;margin-left:8px}
+    .leave-type-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .leave-card{border:2px solid #e0e0e0;border-radius:8px;padding:10px 12px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:8px;font-size:13px;font-weight:500;color:#555}
+    .leave-card:hover{border-color:#1a73e8;color:#1a73e8}
+    .leave-card.selected{border-color:#1a73e8;background:#e8f0fe;color:#1a73e8}
+    .leave-card .icon{font-size:20px}
+    nav{display:flex;gap:16px;margin-top:24px;padding-top:16px;border-top:1px solid #eee;justify-content:center}
+    nav a{color:#1a73e8;font-size:13px;text-decoration:none;font-weight:500}
+    nav a:hover{text-decoration:underline}
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">
+    <div class="logo-icon">📋</div>
+    <div>
+      <h1>Leave Application</h1>
+      <div class="subtitle">Submit your leave request</div>
+    </div>
+  </div>
+
+  <div class="notice">📌 Applications will be sent to your manager for approval. You'll receive an email notification once actioned.</div>
+
+  <form id="leaveForm">
+    <div class="row">
+      <div class="form-group">
+        <label>Full Name *</label>
+        <input type="text" id="staff_name" placeholder="e.g. Alice Tan" required>
+      </div>
+      <div class="form-group">
+        <label>Work Email *</label>
+        <input type="email" id="staff_email" placeholder="alice@company.com" required>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Department *</label>
+      <select id="department" required>
+        <option value="">— Select Department —</option>
+        <option>Engineering</option>
+        <option>Marketing</option>
+        <option>Finance</option>
+        <option>Operations</option>
+        <option>Human Resources</option>
+        <option>Sales</option>
+        <option>Administration</option>
+        <option>Others</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Leave Type *</label>
+      <div class="leave-type-grid">
+        <div class="leave-card" data-type="Annual Leave" onclick="selectLeave(this)">
+          <span class="icon">🏖️</span> Annual Leave
+        </div>
+        <div class="leave-card" data-type="Medical Leave" onclick="selectLeave(this)">
+          <span class="icon">🏥</span> Medical Leave
+        </div>
+        <div class="leave-card" data-type="No Pay Leave" onclick="selectLeave(this)">
+          <span class="icon">💼</span> No Pay Leave
+        </div>
+        <div class="leave-card" data-type="Compassionate Leave" onclick="selectLeave(this)">
+          <span class="icon">🤍</span> Compassionate Leave
+        </div>
+      </div>
+      <input type="hidden" id="leave_type" required>
+    </div>
+
+    <div class="row">
+      <div class="form-group">
+        <label>Start Date *</label>
+        <input type="date" id="start_date" required onchange="calcDays()">
+      </div>
+      <div class="form-group">
+        <label>End Date * <span class="days-badge" id="daysLabel" style="display:none"></span></label>
+        <input type="date" id="end_date" required onchange="calcDays()">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Reason / Remarks</label>
+      <textarea id="reason" rows="3" placeholder="Brief reason for your leave (optional)"></textarea>
+    </div>
+
+    <button class="btn" type="submit" id="submitBtn">Submit Application</button>
+  </form>
+
+  <div class="success" id="successBox">
+    <h2>✅ Application Submitted!</h2>
+    <p id="successMsg"></p>
+    <br>
+    <button class="btn" onclick="resetForm()">Submit Another</button>
+  </div>
+
+  <nav>
+    <a href="/dashboard">📊 Manager Dashboard</a>
+    <a href="/settings">⚙️ Settings</a>
+  </nav>
+</div>
+
+<script>
+let selectedLeaveType = '';
+
+function selectLeave(el) {
+  document.querySelectorAll('.leave-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedLeaveType = el.dataset.type;
+  document.getElementById('leave_type').value = selectedLeaveType;
+}
+
+function calcDays() {
+  const s = document.getElementById('start_date').value;
+  const e = document.getElementById('end_date').value;
+  if (!s || !e) return;
+  let count = 0;
+  let cur = new Date(s);
+  const end = new Date(e);
+  while (cur <= end) {
+    const d = cur.getDay();
+    if (d !== 0 && d !== 6) count++;
+    cur.setDate(cur.getDate() + 1);
+  }
+  const lbl = document.getElementById('daysLabel');
+  if (count > 0) {
+    lbl.textContent = count + ' day' + (count !== 1 ? 's' : '');
+    lbl.style.display = 'inline-block';
+  } else {
+    lbl.style.display = 'none';
+  }
+}
+
+document.getElementById('leaveForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const btn = document.getElementById('submitBtn');
+  if (!selectedLeaveType) { alert('Please select a leave type.'); return; }
+
+  const payload = {
+    staff_name:  document.getElementById('staff_name').value.trim(),
+    staff_email: document.getElementById('staff_email').value.trim(),
+    department:  document.getElementById('department').value,
+    leave_type:  selectedLeaveType,
+    start_date:  document.getElementById('start_date').value,
+    end_date:    document.getElementById('end_date').value,
+    reason:      document.getElementById('reason').value.trim(),
+  };
+
+  btn.disabled = true; btn.textContent = 'Submitting…';
+
+  const res = await fetch('/apply', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify(payload)
+  });
+  const data = await res.json();
+  btn.disabled = false; btn.textContent = 'Submit Application';
+
+  if (data.ok) {
+    document.getElementById('leaveForm').style.display = 'none';
+    const msg = `Your ${payload.leave_type} application for ${data.days} working day(s) ` +
+                `(${payload.start_date} → ${payload.end_date}) has been submitted. ` +
+                (data.email_sent ? 'Your manager has been notified by email.' : 'Email notification pending — please ask manager to check the dashboard.');
+    document.getElementById('successMsg').textContent = msg;
+    document.getElementById('successBox').style.display = 'block';
+  } else {
+    alert('Error: ' + data.error);
+  }
+});
+
+function resetForm() {
+  document.getElementById('leaveForm').reset();
+  document.getElementById('leaveForm').style.display = 'block';
+  document.getElementById('successBox').style.display = 'none';
+  document.querySelectorAll('.leave-card').forEach(c => c.classList.remove('selected'));
+  selectedLeaveType = '';
+  document.getElementById('daysLabel').style.display = 'none';
+}
+
+// Set min date to today
+document.getElementById('start_date').min = new Date().toISOString().split('T')[0];
+document.getElementById('end_date').min   = new Date().toISOString().split('T')[0];
+</script>
+</body>
+</html>
