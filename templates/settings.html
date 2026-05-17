@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Settings – Leave System</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;min-height:100vh}
+    header{background:#1a73e8;color:#fff;padding:16px 28px;display:flex;align-items:center;justify-content:space-between}
+    header h1{font-size:20px;font-weight:700}
+    header .links a{color:rgba(255,255,255,.85);text-decoration:none;margin-left:20px;font-size:14px}
+    .container{max-width:800px;margin:0 auto;padding:28px}
+    .card{background:#fff;border-radius:12px;padding:28px;box-shadow:0 2px 8px rgba(0,0,0,.07);margin-bottom:24px}
+    .card h2{font-size:16px;font-weight:700;margin-bottom:20px;color:#1a1a1a;border-bottom:1px solid #eee;padding-bottom:10px}
+    .form-group{margin-bottom:16px}
+    label{display:block;font-size:13px;font-weight:600;color:#444;margin-bottom:6px}
+    .hint{font-size:11px;color:#999;margin-top:3px}
+    input,select{width:100%;padding:10px 14px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:14px;color:#333;background:#fafafa}
+    input:focus,select:focus{outline:none;border-color:#1a73e8;background:#fff}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .btn{padding:11px 24px;background:#1a73e8;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer}
+    .btn:hover{background:#1557b0}
+    .btn-danger{background:#ea4335}
+    .btn-danger:hover{background:#c5221f}
+    .btn-sm{padding:6px 14px;font-size:12px}
+    .success-msg{background:#e6f4ea;color:#34a853;padding:10px 16px;border-radius:7px;font-size:13px;margin-top:12px;display:none}
+    .staff-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f0f0f0}
+    .staff-row:last-child{border:none}
+    .staff-info{flex:1}
+    .staff-info strong{font-size:14px}
+    .staff-info small{color:#888;font-size:12px;display:block}
+    .add-staff-form{background:#f9f9f9;border-radius:8px;padding:16px;margin-top:16px;display:none}
+    .notice{background:#e8f0fe;border-left:4px solid #1a73e8;padding:12px 16px;border-radius:6px;font-size:13px;color:#1a73e8;margin-bottom:20px}
+  </style>
+</head>
+<body>
+<header>
+  <h1>⚙️ Settings</h1>
+  <div class="links">
+    <a href="/">📋 Staff Form</a>
+    <a href="/dashboard">📊 Dashboard</a>
+  </div>
+</header>
+
+<div class="container">
+  <div class="notice">
+    🔑 Configure your SMTP email settings so leave approval emails are sent to your inbox with clickable Approve/Reject buttons.
+  </div>
+
+  <!-- Email / SMTP -->
+  <div class="card">
+    <h2>📧 Email Configuration (SMTP)</h2>
+    <form id="settingsForm">
+      <div class="row">
+        <div class="form-group">
+          <label>Manager Name</label>
+          <input type="text" name="manager_name" id="manager_name" placeholder="Your Name">
+        </div>
+        <div class="form-group">
+          <label>Manager Email (receives approvals)</label>
+          <input type="email" name="manager_email" id="manager_email" placeholder="you@company.com">
+        </div>
+      </div>
+      <div class="row">
+        <div class="form-group">
+          <label>SMTP Host</label>
+          <input type="text" name="smtp_host" id="smtp_host" placeholder="smtp.gmail.com">
+          <div class="hint">Gmail: smtp.gmail.com | Outlook: smtp-mail.outlook.com</div>
+        </div>
+        <div class="form-group">
+          <label>SMTP Port</label>
+          <input type="number" name="smtp_port" id="smtp_port" placeholder="587" value="587">
+          <div class="hint">Usually 587 (TLS) or 465 (SSL)</div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="form-group">
+          <label>SMTP Username / Email</label>
+          <input type="text" name="smtp_user" id="smtp_user" placeholder="sender@gmail.com">
+        </div>
+        <div class="form-group">
+          <label>SMTP Password / App Password</label>
+          <input type="password" name="smtp_pass" id="smtp_pass" placeholder="••••••••">
+          <div class="hint">For Gmail: use an <a href="https://myaccount.google.com/apppasswords" target="_blank">App Password</a></div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Public Base URL (for approval links in email)</label>
+        <input type="text" name="base_url" id="base_url" placeholder="https://yourserver.com">
+        <div class="hint">The URL staff/managers use to access this system. Approval links in emails will use this.</div>
+      </div>
+      <button class="btn" type="submit">Save Settings</button>
+      <div class="success-msg" id="settingsSaved">✅ Settings saved successfully!</div>
+    </form>
+  </div>
+
+  <!-- Staff Management -->
+  <div class="card">
+    <h2>👥 Staff Management</h2>
+    <div id="staffList"></div>
+    <br>
+    <button class="btn" onclick="document.getElementById('addStaffForm').style.display='block'">+ Add Staff Member</button>
+
+    <div class="add-staff-form" id="addStaffForm">
+      <h3 style="font-size:14px;margin-bottom:14px;font-weight:600">Add New Staff</h3>
+      <div class="row">
+        <div class="form-group">
+          <label>Name</label>
+          <input type="text" id="s_name" placeholder="Full name">
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="s_email" placeholder="work email">
+        </div>
+      </div>
+      <div class="row">
+        <div class="form-group">
+          <label>Department</label>
+          <select id="s_dept">
+            <option>Engineering</option><option>Marketing</option>
+            <option>Finance</option><option>Operations</option>
+            <option>Human Resources</option><option>Sales</option>
+            <option>Administration</option><option>Others</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Annual Leave Balance</label>
+          <input type="number" id="s_al" value="14" min="0">
+        </div>
+      </div>
+      <div class="row">
+        <div class="form-group">
+          <label>Medical Leave Balance</label>
+          <input type="number" id="s_ml" value="14" min="0">
+        </div>
+        <div class="form-group">
+          <label>Compassionate Leave Balance</label>
+          <input type="number" id="s_cl" value="3" min="0">
+        </div>
+      </div>
+      <button class="btn" onclick="addStaff()">Add Staff</button>
+      <button class="btn btn-danger" onclick="document.getElementById('addStaffForm').style.display='none'" style="margin-left:10px">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+async function loadSettings() {
+  const res = await fetch('/api/settings');
+  const cfg = await res.json();
+  Object.keys(cfg).forEach(k => {
+    const el = document.getElementById(k);
+    if (el && k !== 'smtp_pass') el.value = cfg[k] || '';
+  });
+}
+
+document.getElementById('settingsForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const data = {};
+  ['manager_name','manager_email','smtp_host','smtp_port','smtp_user','smtp_pass','base_url'].forEach(k => {
+    const v = document.getElementById(k).value;
+    if (v) data[k] = v;
+  });
+  await fetch('/api/settings', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(data)
+  });
+  document.getElementById('settingsSaved').style.display='block';
+  setTimeout(()=>document.getElementById('settingsSaved').style.display='none', 3000);
+});
+
+async function loadStaff() {
+  const res  = await fetch('/api/staff');
+  const list = await res.json();
+  document.getElementById('staffList').innerHTML = list.map(s => `
+    <div class="staff-row">
+      <div class="staff-info">
+        <strong>${s.name}</strong>
+        <small>${s.email} · ${s.department}</small>
+      </div>
+      <small style="color:#888;font-size:12px">
+        AL:${s.annual_leave_balance} ML:${s.medical_leave_balance}
+        NPL:${s.no_pay_leave_balance} CL:${s.compassionate_leave_balance}
+      </small>
+      <button class="btn btn-danger btn-sm" onclick="deleteStaff(${s.id})">Remove</button>
+    </div>
+  `).join('') || '<p style="color:#aaa;font-size:13px">No staff found.</p>';
+}
+
+async function addStaff() {
+  const d = {
+    name: document.getElementById('s_name').value,
+    email: document.getElementById('s_email').value,
+    department: document.getElementById('s_dept').value,
+    annual_leave_balance: +document.getElementById('s_al').value,
+    medical_leave_balance: +document.getElementById('s_ml').value,
+    compassionate_leave_balance: +document.getElementById('s_cl').value,
+  };
+  if (!d.name || !d.email) { alert('Name and email required.'); return; }
+  const res = await fetch('/api/staff', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(d)
+  });
+  const j = await res.json();
+  if (j.ok) {
+    loadStaff();
+    document.getElementById('addStaffForm').style.display='none';
+    ['s_name','s_email'].forEach(id=>document.getElementById(id).value='');
+  } else {
+    alert('Error: '+j.error);
+  }
+}
+
+async function deleteStaff(id) {
+  if (!confirm('Remove this staff member?')) return;
+  await fetch(`/api/staff/${id}`, {method:'DELETE'});
+  loadStaff();
+}
+
+loadSettings();
+loadStaff();
+</script>
+</body>
+</html>
